@@ -1,0 +1,23 @@
+{
+  "platforms": [
+    {
+      "platform": "CO2RestAPISensor",
+      "sensors": [
+        {
+          "name": "Living Room Multi-Sensor",
+          "url": "http://192.168.1.100/api/sensor",
+          "updateInterval": 60,
+          "jsonPath": "co2",
+          "enableTemperature": true,
+          "temperatureJsonPath": "temp",
+          "enableHumidity": true,
+          "humidityJsonPath": "humidity",
+          "abnormalThreshold": 1000,
+          "manufacturer": "Custom",
+          "model": "Multi-Sensor",
+          "serialNumber": "12345"
+        }
+      ]
+    }
+  ]
+}

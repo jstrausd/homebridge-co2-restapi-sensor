@@ -1,0 +1,397 @@
+{
+  "pluginAlias": "CO2RestAPISensor",
+  "pluginType": "platform",
+  "singular": false,
+  "headerDisplay": "This plugin allows you to integrate CO2 sensors with optional temperature and humidity via REST API into HomeKit. Configure one or more sensors below.",
+  "footerDisplay": "For help and examples, please see the [README](https://github.com/jstrauss/homebridge-co2-restapi-sensor#readme).",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "platform": {
+        "title": "Platform",
+        "type": "string",
+        "default": "CO2RestAPISensor",
+        "required": true,
+        "readOnly": true
+      },
+      "sensors": {
+        "title": "Sensors",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "title": "Sensor Name",
+              "type": "string",
+              "required": true,
+              "placeholder": "Living Room CO2",
+              "description": "The name of the sensor as it will appear in HomeKit"
+            },
+            "url": {
+              "title": "API URL",
+              "type": "string",
+              "required": true,
+              "format": "uri",
+              "placeholder": "http://192.168.1.100/api/sensor",
+              "description": "The REST API endpoint URL to fetch sensor data from (CO2 and optionally temp/humidity)"
+            },
+            "updateInterval": {
+              "title": "Update Interval (seconds)",
+              "type": "integer",
+              "default": 60,
+              "minimum": 5,
+              "maximum": 3600,
+              "description": "How often to fetch sensor data (in seconds)"
+            },
+            "httpMethod": {
+              "title": "HTTP Method",
+              "type": "string",
+              "default": "GET",
+              "enum": ["GET", "POST"],
+              "description": "HTTP method to use for the API request"
+            },
+            "jsonPath": {
+              "title": "CO2 JSON Path",
+              "type": "string",
+              "default": "co2",
+              "placeholder": "co2",
+              "description": "Path to extract CO2 value from JSON response (e.g., 'co2' or 'sensor.co2'). Leave as 'co2' for default."
+            },
+            "headers": {
+              "title": "HTTP Headers (optional)",
+              "type": "object",
+              "placeholder": {
+                "Authorization": "Bearer token123",
+                "Content-Type": "application/json"
+              },
+              "description": "Custom HTTP headers to send with the request"
+            },
+            "body": {
+              "title": "HTTP Body (optional, for POST)",
+              "type": "string",
+              "placeholder": "{\"sensor\": \"co2\"}",
+              "description": "Request body for POST requests (JSON string or plain text)",
+              "condition": {
+                "functionBody": "return model.sensors && model.sensors[arrayIndices].httpMethod === 'POST';"
+              }
+            },
+            "timeout": {
+              "title": "Request Timeout (ms)",
+              "type": "integer",
+              "default": 5000,
+              "minimum": 1000,
+              "maximum": 30000,
+              "description": "Maximum time to wait for API response in milliseconds"
+            },
+            "auth": {
+              "title": "Authentication (optional)",
+              "type": "object",
+              "properties": {
+                "username": {
+                  "title": "Username",
+                  "type": "string",
+                  "description": "Username for HTTP Basic Authentication"
+                },
+                "password": {
+                  "title": "Password",
+                  "type": "string",
+                  "description": "Password for HTTP Basic Authentication"
+                }
+              }
+            },
+            "minCO2": {
+              "title": "Minimum CO2 (ppm)",
+              "type": "integer",
+              "default": 0,
+              "minimum": 0,
+              "maximum": 50000,
+              "description": "Minimum CO2 value in ppm (values below will be clamped)"
+            },
+            "maxCO2": {
+              "title": "Maximum CO2 (ppm)",
+              "type": "integer",
+              "default": 5000,
+              "minimum": 100,
+              "maximum": 50000,
+              "description": "Maximum CO2 value in ppm (values above will be clamped)"
+            },
+            "abnormalThreshold": {
+              "title": "Abnormal CO2 Threshold (ppm)",
+              "type": "integer",
+              "default": 1000,
+              "minimum": 400,
+              "maximum": 5000,
+              "description": "CO2 level above which the sensor reports 'Abnormal' state in HomeKit (default: 1000 ppm)"
+            },
+            "enableTemperature": {
+              "title": "Enable Temperature Sensor",
+              "type": "boolean",
+              "default": false,
+              "description": "Enable temperature sensor support"
+            },
+            "temperatureUrl": {
+              "title": "Temperature API URL (optional)",
+              "type": "string",
+              "format": "uri",
+              "placeholder": "http://192.168.1.100/api/temperature",
+              "description": "Separate URL for temperature data. Leave empty to use main URL.",
+              "condition": {
+                "functionBody": "return model.sensors && model.sensors[arrayIndices] && model.sensors[arrayIndices].enableTemperature === true;"
+              }
+            },
+            "temperatureJsonPath": {
+              "title": "Temperature JSON Path",
+              "type": "string",
+              "default": "temp",
+              "placeholder": "temp",
+              "description": "Path to extract temperature from JSON (e.g., 'temp' or 'sensor.temperature')",
+              "condition": {
+                "functionBody": "return model.sensors && model.sensors[arrayIndices] && model.sensors[arrayIndices].enableTemperature === true;"
+              }
+            },
+            "temperatureHttpMethod": {
+              "title": "Temperature HTTP Method",
+              "type": "string",
+              "enum": ["GET", "POST"],
+              "description": "HTTP method for temperature endpoint (uses main method if not set)",
+              "condition": {
+                "functionBody": "return model.sensors && model.sensors[arrayIndices] && model.sensors[arrayIndices].enableTemperature === true && model.sensors[arrayIndices].temperatureUrl;"
+              }
+            },
+            "temperatureHeaders": {
+              "title": "Temperature HTTP Headers",
+              "type": "object",
+              "description": "Custom headers for temperature endpoint (uses main headers if not set)",
+              "condition": {
+                "functionBody": "return model.sensors && model.sensors[arrayIndices] && model.sensors[arrayIndices].enableTemperature === true && model.sensors[arrayIndices].temperatureUrl;"
+              }
+            },
+            "temperatureBody": {
+              "title": "Temperature HTTP Body",
+              "type": "string",
+              "description": "Request body for temperature POST requests",
+              "condition": {
+                "functionBody": "return model.sensors && model.sensors[arrayIndices] && model.sensors[arrayIndices].enableTemperature === true && model.sensors[arrayIndices].temperatureUrl && model.sensors[arrayIndices].temperatureHttpMethod === 'POST';"
+              }
+            },
+            "temperatureTimeout": {
+              "title": "Temperature Request Timeout (ms)",
+              "type": "integer",
+              "minimum": 1000,
+              "maximum": 30000,
+              "description": "Timeout for temperature endpoint (uses main timeout if not set)",
+              "condition": {
+                "functionBody": "return model.sensors && model.sensors[arrayIndices] && model.sensors[arrayIndices].enableTemperature === true && model.sensors[arrayIndices].temperatureUrl;"
+              }
+            },
+            "minTemperature": {
+              "title": "Minimum Temperature (°C)",
+              "type": "integer",
+              "default": -100,
+              "minimum": -100,
+              "maximum": 100,
+              "description": "Minimum temperature value in °C",
+              "condition": {
+                "functionBody": "return model.sensors && model.sensors[arrayIndices] && model.sensors[arrayIndices].enableTemperature === true;"
+              }
+            },
+            "maxTemperature": {
+              "title": "Maximum Temperature (°C)",
+              "type": "integer",
+              "default": 100,
+              "minimum": -100,
+              "maximum": 100,
+              "description": "Maximum temperature value in °C",
+              "condition": {
+                "functionBody": "return model.sensors && model.sensors[arrayIndices] && model.sensors[arrayIndices].enableTemperature === true;"
+              }
+            },
+            "enableHumidity": {
+              "title": "Enable Humidity Sensor",
+              "type": "boolean",
+              "default": false,
+              "description": "Enable humidity sensor support"
+            },
+            "humidityUrl": {
+              "title": "Humidity API URL (optional)",
+              "type": "string",
+              "format": "uri",
+              "placeholder": "http://192.168.1.100/api/humidity",
+              "description": "Separate URL for humidity data. Leave empty to use main URL.",
+              "condition": {
+                "functionBody": "return model.sensors && model.sensors[arrayIndices] && model.sensors[arrayIndices].enableHumidity === true;"
+              }
+            },
+            "humidityJsonPath": {
+              "title": "Humidity JSON Path",
+              "type": "string",
+              "default": "humidity",
+              "placeholder": "humidity",
+              "description": "Path to extract humidity from JSON (e.g., 'humidity' or 'sensor.humidity')",
+              "condition": {
+                "functionBody": "return model.sensors && model.sensors[arrayIndices] && model.sensors[arrayIndices].enableHumidity === true;"
+              }
+            },
+            "humidityHttpMethod": {
+              "title": "Humidity HTTP Method",
+              "type": "string",
+              "enum": ["GET", "POST"],
+              "description": "HTTP method for humidity endpoint (uses main method if not set)",
+              "condition": {
+                "functionBody": "return model.sensors && model.sensors[arrayIndices] && model.sensors[arrayIndices].enableHumidity === true && model.sensors[arrayIndices].humidityUrl;"
+              }
+            },
+            "humidityHeaders": {
+              "title": "Humidity HTTP Headers",
+              "type": "object",
+              "description": "Custom headers for humidity endpoint (uses main headers if not set)",
+              "condition": {
+                "functionBody": "return model.sensors && model.sensors[arrayIndices] && model.sensors[arrayIndices].enableHumidity === true && model.sensors[arrayIndices].humidityUrl;"
+              }
+            },
+            "humidityBody": {
+              "title": "Humidity HTTP Body",
+              "type": "string",
+              "description": "Request body for humidity POST requests",
+              "condition": {
+                "functionBody": "return model.sensors && model.sensors[arrayIndices] && model.sensors[arrayIndices].enableHumidity === true && model.sensors[arrayIndices].humidityUrl && model.sensors[arrayIndices].humidityHttpMethod === 'POST';"
+              }
+            },
+            "humidityTimeout": {
+              "title": "Humidity Request Timeout (ms)",
+              "type": "integer",
+              "minimum": 1000,
+              "maximum": 30000,
+              "description": "Timeout for humidity endpoint (uses main timeout if not set)",
+              "condition": {
+                "functionBody": "return model.sensors && model.sensors[arrayIndices] && model.sensors[arrayIndices].enableHumidity === true && model.sensors[arrayIndices].humidityUrl;"
+              }
+            },
+            "manufacturer": {
+              "title": "Manufacturer (optional)",
+              "type": "string",
+              "placeholder": "Acme Corp",
+              "description": "Manufacturer name shown in HomeKit accessory info"
+            },
+            "model": {
+              "title": "Model (optional)",
+              "type": "string",
+              "placeholder": "CO2-1000",
+              "description": "Model name shown in HomeKit accessory info"
+            },
+            "serialNumber": {
+              "title": "Serial Number (optional)",
+              "type": "string",
+              "placeholder": "SN123456",
+              "description": "Serial number shown in HomeKit accessory info"
+            },
+            "firmwareRevision": {
+              "title": "Firmware Revision (optional)",
+              "type": "string",
+              "placeholder": "1.0.0",
+              "description": "Firmware version shown in HomeKit accessory info"
+            }
+          }
+        }
+      }
+    }
+  },
+  "layout": [
+    {
+      "type": "array",
+      "key": "sensors",
+      "buttonText": "Add Sensor",
+      "items": [
+        {
+          "type": "section",
+          "title": "Basic Configuration",
+          "expandable": true,
+          "expanded": true,
+          "items": [
+            "sensors[].name",
+            "sensors[].url",
+            "sensors[].updateInterval"
+          ]
+        },
+        {
+          "type": "section",
+          "title": "CO2 Configuration",
+          "expandable": true,
+          "expanded": true,
+          "items": [
+            "sensors[].jsonPath",
+            "sensors[].minCO2",
+            "sensors[].maxCO2",
+            "sensors[].abnormalThreshold"
+          ]
+        },
+        {
+          "type": "section",
+          "title": "Temperature Sensor",
+          "expandable": true,
+          "expanded": false,
+          "items": [
+            "sensors[].enableTemperature",
+            "sensors[].temperatureUrl",
+            "sensors[].temperatureJsonPath",
+            "sensors[].temperatureHttpMethod",
+            "sensors[].temperatureHeaders",
+            "sensors[].temperatureBody",
+            "sensors[].temperatureTimeout",
+            "sensors[].minTemperature",
+            "sensors[].maxTemperature"
+          ]
+        },
+        {
+          "type": "section",
+          "title": "Humidity Sensor",
+          "expandable": true,
+          "expanded": false,
+          "items": [
+            "sensors[].enableHumidity",
+            "sensors[].humidityUrl",
+            "sensors[].humidityJsonPath",
+            "sensors[].humidityHttpMethod",
+            "sensors[].humidityHeaders",
+            "sensors[].humidityBody",
+            "sensors[].humidityTimeout"
+          ]
+        },
+        {
+          "type": "section",
+          "title": "API Configuration",
+          "expandable": true,
+          "expanded": false,
+          "items": [
+            "sensors[].httpMethod",
+            "sensors[].headers",
+            "sensors[].body",
+            "sensors[].timeout"
+          ]
+        },
+        {
+          "type": "section",
+          "title": "Authentication",
+          "expandable": true,
+          "expanded": false,
+          "items": [
+            "sensors[].auth.username",
+            "sensors[].auth.password"
+          ]
+        },
+        {
+          "type": "section",
+          "title": "Accessory Information",
+          "expandable": true,
+          "expanded": false,
+          "items": [
+            "sensors[].manufacturer",
+            "sensors[].model",
+            "sensors[].serialNumber",
+            "sensors[].firmwareRevision"
+          ]
+        }
+      ]
+    }
+  ]
+}

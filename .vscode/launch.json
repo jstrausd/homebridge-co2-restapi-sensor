@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Homebridge",
+      "program": "${workspaceFolder}/node_modules/homebridge/bin/homebridge",
+      "args": [
+        "-D",
+        "-U",
+        "${workspaceFolder}/.homebridge"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js"
+      ],
+      "preLaunchTask": "Build Plugin"
+    }
+  ]
+}
