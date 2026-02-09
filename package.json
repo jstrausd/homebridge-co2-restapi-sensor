@@ -1,7 +1,7 @@
 {
   "name": "homebridge-co2-restapi-sensor",
   "displayName": "Homebridge CO2 RestAPI Sensor",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A Homebridge plugin to integrate CO2, temperature, and humidity sensors via REST API with flexible configuration",
   "main": "dist/index.js",
   "scripts": {
