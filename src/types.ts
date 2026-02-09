@@ -1,7 +1,6 @@
 import { API } from 'homebridge';
 
 export interface CO2SensorConfig {
-  accessory: string;
   name: string;
   url: string;
   updateInterval?: number;
